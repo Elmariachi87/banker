@@ -1,5 +1,5 @@
 # banker
-A fake bank app to practise a range of JS methods
+A mock banking app to practise a range of JS methods
 
 LOGIN: first digit of each name (e.g. jh for Joe Hookham). Pin found below
 
