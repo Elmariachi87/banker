@@ -78,6 +78,8 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+const loanText = document.querySelector('.form__label--loan');
+
 /////////////////////////////////////////////////
 // Functions
 const formatMovementDate = function (date, locale) {
@@ -190,14 +192,43 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+const startLogOutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    // This line tells JS to show how many seconds are left by displaying whatever is the remainder after 1 min (60 secs)
+    const sec = String(Math.trunc(time % 60)).padStart(2, 0);
+    // in each call, print remaining time to UI
+    labelTimer.textContent = `${min}:${sec}`;
+
+    // when 0 secs, stop timer & log out
+
+    if (time === 0) {
+      labelWelcome.textContent = `Log in to get started`;
+      containerApp.style.opacity = 0;
+      clearInterval(timer);
+    }
+    // Descrease 1 sec
+
+    time--;
+  };
+
+  // set time to 5 mins
+  let time = 300;
+  // call timer every second
+  tick();
+  // to start a setInterval immediately, put the callback function into a variable and call it. Then call setInterval on it. Otherwise, it won't start until after the specified timer
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
+
 ///////////////////////////////////////
 // Event handlers
-let currentAccount;
+let currentAccount, timer;
 
-// Fake always logged in
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+// // Fake always logged in
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 100;
 
 btnLogin.addEventListener('click', function (e) {
   // Prevent form from submitting
@@ -206,7 +237,6 @@ btnLogin.addEventListener('click', function (e) {
   currentAccount = accounts.find(
     acc => acc.username === inputLoginUsername.value
   );
-  console.log(currentAccount);
 
   if (currentAccount?.pin === +inputLoginPin.value) {
     // Display UI and message
@@ -250,6 +280,10 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
+    // Timer
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
+
     // Update UI
     updateUI(currentAccount);
   }
@@ -281,6 +315,10 @@ btnTransfer.addEventListener('click', function (e) {
 
     // Update UI
     updateUI(currentAccount);
+
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
 });
 
@@ -289,16 +327,26 @@ btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
   const amount = Math.floor(inputLoanAmount.value);
+  loanText.innerHTML = '...approving';
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    // Add movement
-    currentAccount.movements.push(amount);
+    setTimeout(function () {
+      // Add movement
+      currentAccount.movements.push(amount);
 
-    // Add loan date
-    currentAccount.movementsDates.push(new Date().toISOString());
+      // Add loan date
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-    // Update UI
-    updateUI(currentAccount);
+      // Update UI
+      updateUI(currentAccount);
+
+      // Reset 'amount' text
+      loanText.innerHTML = 'Amount';
+    }, 2500);
+
+    // Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
   inputLoanAmount.value = '';
 });
@@ -586,5 +634,43 @@ console.log('SY:', new Intl.NumberFormat('ar-SY', options).format(num));
    navigator.language,
    new Intl.NumberFormat(navigator.language).format(num)
  ); // en-GB 3,884,764.23
+
+
+
+// ===== 180 - Numbers, dates, INTL and timers =====
+// setTimeout will call a function after a specified time.
+
+setTimeout(() => console.log('Here is your pizza 🍕'), 3000);
+
+// setTimeout will not delay the rest of the script - it registers the function and will continue to run through the rest of the script
+console.log('Waiting...');
+
+// Passing in arguments: you can pass in variables after the timer
+
+setTimeout(
+  (ing1, ing2) => console.log(`Here is your pizza with ${ing1} & ${ing2} 🍕`),
+  3000,
+  'olives',
+  'spinach'
+);
+
+// We can use an array with arguments
+const ingredients = ['olives', 'spinach'];
+
+const pizzaTimer = setTimeout(
+  (ing1, ing2) =>
+    console.log(`Here is your array pizza with ${ing1} & ${ing2} 🍕`),
+  3000,
+  ...ingredients
+);
+
+// We can clear a timer based on conditions (e.g., if the pizza includes spinach)
+if (ingredients.includes('spinach')) clearTimeout(pizzaTimer);
+
+// To make repeating function
+setInterval(function () {
+  const now = new Date();
+  console.log(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`);
+}, 1000);
 
 */
